@@ -3,6 +3,7 @@ CREATE SCHEMA todoapp;
 CREATE TABLE todoapp.user (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     version       BIGINT NOT NULL DEFAULT 1,
+    full_name     TEXT NOT NULL CHECK(length(full_name) BETWEEN 3 AND 100),
     phone_number  VARCHAR(15) CHECK (
         phone_number ~ '^\+[1-9]\d{1,14}$'
     )
