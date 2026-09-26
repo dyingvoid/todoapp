@@ -51,4 +51,6 @@ migrate-action:
 		"$(action)"
 
 todoapp-run:
-	@go run ${PROJECT_ROOT}/cmd/todoapp/
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	go mod tidy && \
+	go run ${PROJECT_ROOT}/cmd/todoapp/

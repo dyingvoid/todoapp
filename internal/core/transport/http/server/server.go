@@ -27,7 +27,7 @@ func NewHTTPServer(
 	}
 }
 
-func (h *HTTPServer) RegisterAPIRoutes(routers ...APIVersionRouter) {
+func (h *HTTPServer) RegisterAPIRoutes(routers ...*APIVersionRouter) {
 	for _, router := range routers {
 		prefix := "/api/" + string(router.apiVersion)
 
