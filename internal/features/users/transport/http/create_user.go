@@ -3,6 +3,7 @@ package users_transport_http
 import (
 	"net/http"
 
+	"github.com/dyingvoid/todoapp/internal/core/domain"
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
 	core_http_request "github.com/dyingvoid/todoapp/internal/core/transport/http/request"
 	core_http_response "github.com/dyingvoid/todoapp/internal/core/transport/http/response"
@@ -14,14 +15,15 @@ type CreateUserRequest struct {
 }
 
 type CreateUserResponse struct {
-	ID          int     `json:"id"`
-	Version     int     `json:"version"`
+	ID          int64   `json:"id"`
+	Version     int64   `json:"version"`
 	FullName    string  `json:"full_name"`
 	PhoneNumber *string `json:"phone_number"`
 }
 
 func (h *UsersHTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	log := core_logger.FromContext(r.Context())
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
 	log.Debug("invoke CreateUserHandler")
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, w)
 
@@ -31,5 +33,26 @@ func (h *UsersHTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	userDomain := domainFromDto(request)
+	userDomain, err := h.usersService.CreateUser(ctx, userDomain)
+	if err != nil {
+		responseHandler.ErrorResponse(err, "failed to create user")
+		return
+	}
+
+	response := dtoFromDomain(userDomain)
+	responseHandler.JSONResponse(response, http.StatusCreated)
+}
+
+func domainFromDto(dto CreateUserRequest) domain.User {
+	return domain.NewUserUninitialized(dto.FullName, dto.PhoneNumber)
+}
+
+func dtoFromDomain(user domain.User) CreateUserResponse {
+	return CreateUserResponse{
+		ID:          user.ID,
+		Version:     user.Version,
+		FullName:    user.FullName,
+		PhoneNumber: user.PhoneNumber,
+	}
 }

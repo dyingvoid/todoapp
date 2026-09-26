@@ -27,13 +27,23 @@ func NewHTTPResponseHandler(
 	}
 }
 
+func (h *HTTPResponseHandler) JSONResponse(
+	responseBody any,
+	statusCode int,
+) {
+	h.w.WriteHeader(statusCode)
+	if err := json.NewEncoder(h.w).Encode(responseBody); err != nil {
+		h.log.Error("write HTTP response", zap.Error(err))
+	}
+}
+
 func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
 	var (
 		statusCode int
-		logFn func(string, ...zap.Field)
+		logFn      func(string, ...zap.Field)
 	)
 
-	switch{
+	switch {
 	case errors.Is(err, core_errors.ErrInvalidArgument):
 		statusCode = http.StatusBadRequest
 		logFn = h.log.Warn
@@ -73,7 +83,8 @@ func (h *HTTPResponseHandler) errorResponse(
 		"error":   err.Error(),
 	}
 
-	if err := json.NewEncoder(h.w).Encode(response); err != nil {
-		h.log.Error("write HTTP response", zap.Error(err))
-	}
+	h.JSONResponse(
+		response,
+		statusCode,
+	)
 }
