@@ -3,6 +3,9 @@ package users_transport_http
 import (
 	"encoding/json"
 	"net/http"
+
+	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
+	"go.uber.org/zap"
 )
 
 type CreateUserRequest struct {
@@ -18,8 +21,15 @@ type CreateUserResponse struct {
 }
 
 func (h *UsersHTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	log := core_logger.FromContext(r.Context())
+	log.Debug("invoke CreateUserHandler")
+
 	var request CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		
+		log.Error("decode request", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }

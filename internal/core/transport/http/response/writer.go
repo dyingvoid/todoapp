@@ -1,6 +1,8 @@
 package core_http_response
 
-import "net/http"
+import (
+	"net/http"
+)
 
 var (
 	StatusCodeUninitialized = -1
@@ -18,7 +20,7 @@ func NewResponseWriter(w http.ResponseWriter) *ResponseWriter {
 	}
 }
 
-func (rw *ResponseWriter) WriterHeader(statusCode int) {
+func (rw *ResponseWriter) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
