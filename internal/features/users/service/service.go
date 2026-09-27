@@ -26,6 +26,11 @@ type UsersRepository interface {
 		ctx context.Context,
 		id int64,
 	) (domain.User, error)
+
+	DeleteUser(
+		ctx context.Context,
+		id int64,
+	) error
 }
 
 func NewUsersService(
