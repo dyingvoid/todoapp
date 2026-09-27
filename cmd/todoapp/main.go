@@ -8,8 +8,11 @@ import (
 	"syscall"
 
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
+	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/conn"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
+	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
+	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
 	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
@@ -29,14 +32,22 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.Debug("Starting todo app")
+	logger.Debug("initializing postgres connection pool")
+	pool, err := core_postgres_pool.NewConnectionPool(
+		ctx,
+		core_postgres_pool.NewConfigMust(),
+	)
+	if err != nil {
+		logger.Fatal("failed to init postgres connection pool", zap.Error(err))
+	}
+	defer pool.Close()
 
-	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(nil)
-	usersRoutes := usersTransportHTTP.Routes()
+	logger.Debug("initializing feature", zap.String("feature", "users"))
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	usersService := users_service.NewUsersService(usersRepository)
+	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
 
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes(usersRoutes...)
-
+	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
@@ -45,6 +56,9 @@ func main() {
 		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
 	)
+
+	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 
 	if err := httpServer.Run(ctx); err != nil {
