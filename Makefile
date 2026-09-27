@@ -54,4 +54,5 @@ todoapp-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
+	go fmt ${PROJECT_ROOT}/... && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/
