@@ -1,6 +1,7 @@
 package users_transport_http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/dyingvoid/todoapp/internal/core/domain"
@@ -14,6 +15,30 @@ import (
 type PatchUserRequest struct {
 	FullName    core_http_types.Nullable[string] `json:"full_name"`
 	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+}
+
+func (r *PatchUserRequest) Validate() error {
+	if r.FullName.Set {
+		if r.FullName.Value == nil {
+			return fmt.Errorf("`FullName` can't be null")
+		}
+
+		fnLen := len([]rune(*r.FullName.Value))
+		if fnLen < 3 || fnLen > 100 {
+			return fmt.Errorf("`FullName` must have a length between 3 and 100 symbols")
+		}
+	}
+
+	if r.PhoneNumber.Set {
+		if r.PhoneNumber.Value != nil {
+			pnLen := len([]rune(*r.PhoneNumber.Value))
+			if pnLen < 10 || pnLen > 15 {
+				return fmt.Errorf("`PhoneNumber` must have a length between 10 and 15 symbols")
+			}
+		}
+	}
+
+	return nil 
 }
 
 type PatchUserResponse UserDTOResponse
