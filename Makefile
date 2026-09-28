@@ -12,7 +12,7 @@ env-down:
 env-cleanup:
 	@read -p "Clean up volume? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todo-postgres && \
+		docker compose down todo-postgres port-forwarder && \
 		rm -rf out/pgdata && \
 		echo "Volume has been cleaned up"; \
 	else \
@@ -49,3 +49,10 @@ migrate-action:
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todo-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
+
+todoapp-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go fmt ${PROJECT_ROOT}/... && \
+	go run ${PROJECT_ROOT}/cmd/todoapp/
