@@ -21,7 +21,7 @@ func (r *UsersRepository) GetUsers(
 	FROM todoapp.user
 	ORDER BY id ASC
 	LIMIT @limit
-	OFFSET @offset`
+	OFFSET @offset;`
 	args := pgx.NamedArgs{
 		"limit":  limit,
 		"offset": offset,

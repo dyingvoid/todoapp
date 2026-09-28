@@ -17,7 +17,7 @@ func (r *UsersRepository) DeleteUser(
 
 	query := `
 	DELETE FROM todoapp.user
-	WHERE id = @id`
+	WHERE id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,
 	}

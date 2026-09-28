@@ -20,7 +20,7 @@ func (r *UsersRepository) GetUser(
 	query := `
 	SELECT id, version, full_name, phone_number
 	FROM todoapp.user
-	WHERE id = @id`
+	WHERE id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,
 	}

@@ -18,7 +18,7 @@ func (r *UsersRepository) CreateUser(
 	query := `
 	INSERT INTO todoapp.user (full_name, phone_number)
 	VALUES (@full_name, @phone_number)
-	RETURNING *`
+	RETURNING *;`
 	args := pgx.NamedArgs{
 		"full_name":    user.FullName,
 		"phone_number": user.PhoneNumber,

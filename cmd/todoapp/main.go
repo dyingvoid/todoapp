@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
-	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/conn"
+	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
 	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
@@ -53,8 +53,8 @@ func main() {
 		logger,
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
+		core_http_middleware.Panic(),
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)

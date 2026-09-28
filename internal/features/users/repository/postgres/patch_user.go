@@ -25,7 +25,7 @@ func (r *UsersRepository) PatchUser(
 		phone_number=@phone_number,
 		version=version+1
 	WHERE id=@id AND version=@version
-	RETURNING *`
+	RETURNING *;`
 	args := pgx.NamedArgs{
 		"full_name":    user.FullName,
 		"phone_number": user.PhoneNumber,
@@ -43,6 +43,7 @@ func (r *UsersRepository) PatchUser(
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, fmt.Errorf(
 				"user with id='%d' concurrently accessed: %w",
+				id,
 				core_errors.ErrConflict,
 			)
 		}
