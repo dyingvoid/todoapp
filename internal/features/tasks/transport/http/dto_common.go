@@ -17,7 +17,7 @@ type TaskDTOResponse struct {
 	AuthorUserID int64      `json:"author_user_id"`
 }
 
-func taskFromDomain(task domain.Task) TaskDTOResponse {
+func dtoFromDomain(task domain.Task) TaskDTOResponse {
 	return TaskDTOResponse{
 		ID:           task.ID,
 		Version:      task.Version,
@@ -33,7 +33,7 @@ func taskFromDomain(task domain.Task) TaskDTOResponse {
 func tasksFromDomains(tasks []domain.Task) []TaskDTOResponse {
 	dtos := make([]TaskDTOResponse, len(tasks))
 	for i, task := range tasks {
-		dtos[i] = taskFromDomain(task)
+		dtos[i] = dtoFromDomain(task)
 	}
 	return dtos
 }

@@ -13,7 +13,6 @@ import (
 func (r *TasksRepository) PatchTask(
 	ctx context.Context,
 	id int64,
-	userID int64,
 	task domain.Task,
 ) (domain.Task, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
@@ -26,10 +25,13 @@ func (r *TasksRepository) PatchTask(
 		description=@description,
 		completed=@completed,
 		completed_at=@completed_at,
-		version=version+1
-	WHERE id=@id AND user_id=@user_id AND version=@version;`
+		version=version + 1
+	WHERE id=@id AND version=@version
+	RETURNING *;`
 	args := pgx.NamedArgs{
+		"id":           task.ID,
 		"title":        task.Title,
+		"version":      task.Version,
 		"description":  task.Description,
 		"completed":    task.Completed,
 		"completed_at": task.CompletedAt,
@@ -44,6 +46,7 @@ func (r *TasksRepository) PatchTask(
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.Task{}, fmt.Errorf(
 				"task with id='%d' concurrently accessed: %w",
+				id,
 				core_errors.ErrConflict,
 			)
 		}

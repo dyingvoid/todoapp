@@ -10,11 +10,6 @@ type TasksService struct {
 	tasksRepository TasksRepository
 }
 
-// PatchTask implements [tasks_transport_http.TasksService].
-func (s *TasksService) PatchTask(ctx context.Context, id int64, userID int64) (domain.Task, error) {
-	panic("unimplemented")
-}
-
 type TasksRepository interface {
 	CreateTask(
 		ctx context.Context,
@@ -41,7 +36,6 @@ type TasksRepository interface {
 	PatchTask(
 		ctx context.Context,
 		id int64,
-		userID int64,
 		task domain.Task,
 	) (domain.Task, error)
 }

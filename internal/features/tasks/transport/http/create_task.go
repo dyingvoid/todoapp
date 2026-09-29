@@ -45,6 +45,6 @@ func (h *TasksHTTPHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := CreateTaskResponse(taskFromDomain(task))
+	response := CreateTaskResponse(dtoFromDomain(task))
 	responseHandler.JSONResponse(response, http.StatusCreated)
 }
