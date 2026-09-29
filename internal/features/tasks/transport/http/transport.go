@@ -20,9 +20,9 @@ type TasksService interface {
 
 	GetTasks(
 		ctx context.Context,
-		userID int64,
-		offset *int,
+		userID *int64,
 		limit *int,
+		offset *int,
 	) ([]domain.Task, error)
 
 	GetTask(
@@ -51,6 +51,11 @@ func (h *TasksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodPost,
 			Path:    "/tasks",
 			Handler: h.CreateTask,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/tasks",
+			Handler: h.GetTasks,
 		},
 	}
 }

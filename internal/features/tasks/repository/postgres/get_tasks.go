@@ -10,7 +10,7 @@ import (
 
 func (r *TasksRepository) GetTasks(
 	ctx context.Context,
-	userID int64,
+	userID *int64,
 	limit *int,
 	offset *int,
 ) ([]domain.Task, error) {
@@ -20,10 +20,17 @@ func (r *TasksRepository) GetTasks(
 	query := `
 	SELECT *
 	FROM todoapp.task
-	WHERE user_id = @user_id
+	%s
 	ORDER BY id ASC
 	LIMIT @limit
 	OFFSET @offset;`
+
+	if userID != nil {
+		query = fmt.Sprintf(query, "WHERE user_id = @user_id")
+	} else {
+		query = fmt.Sprintf(query, "")
+	}
+
 	args := pgx.NamedArgs{
 		"user_id": userID,
 		"limit":   limit,

@@ -15,11 +15,6 @@ func (s *TasksService) GetTask(ctx context.Context, id int64, userID int64) (dom
 	panic("unimplemented")
 }
 
-// GetTasks implements [tasks_transport_http.TasksService].
-func (s *TasksService) GetTasks(ctx context.Context, userID int64, offset *int, limit *int) ([]domain.Task, error) {
-	panic("unimplemented")
-}
-
 // PatchTask implements [tasks_transport_http.TasksService].
 func (s *TasksService) PatchTask(ctx context.Context, id int64, userID int64) (domain.Task, error) {
 	panic("unimplemented")
@@ -33,7 +28,7 @@ type TasksRepository interface {
 
 	GetTasks(
 		ctx context.Context,
-		userID int64,
+		userID *int64,
 		offset *int,
 		limit *int,
 	) ([]domain.Task, error)

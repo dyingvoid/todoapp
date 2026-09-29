@@ -1,4 +1,4 @@
-package core_http_utils
+package core_http_request
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	core_errors "github.com/dyingvoid/todoapp/internal/core/errors"
 )
 
-func GetIntQueryParam(r *http.Request, key string) (*int, error) {
+func GetIntQueryParam[T int | int64](r *http.Request, key string) (*T, error) {
 	param := r.URL.Query().Get(key)
 	if param == "" {
 		return nil, nil
 	}
 
-	val, err := strconv.Atoi(param)
+	val, err := strconv.ParseInt(param, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"param='%s' by key='%s' not a valid integer: %v: %w",
@@ -25,5 +25,6 @@ func GetIntQueryParam(r *http.Request, key string) (*int, error) {
 		)
 	}
 
-	return &val, nil
+	result := T(val)
+	return &result, nil
 }
