@@ -6,15 +6,24 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
-	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/conn"
+	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
+	tasks_postgres_repository "github.com/dyingvoid/todoapp/internal/features/tasks/repository/postgres"
+	tasks_service "github.com/dyingvoid/todoapp/internal/features/tasks/service"
+	tasks_transport_http "github.com/dyingvoid/todoapp/internal/features/tasks/transport/http"
 	"go.uber.org/zap"
 )
 
+var (
+	timeZone = time.UTC
+)
+
 func main() {
+	time.Local = timeZone
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
@@ -29,6 +38,8 @@ func main() {
 	}
 	defer logger.Close()
 
+	logger.Debug("application time zone", zap.Any("zone", timeZone))
+
 	logger.Debug("initializing postgres connection pool")
 	pool, err := core_postgres_pool.NewConnectionPool(
 		ctx,
@@ -39,7 +50,10 @@ func main() {
 	}
 	defer pool.Close()
 
-	logger.Debug("initializing feature", zap.String("feature", "users"))
+	logger.Debug("initializing feature", zap.String("feature", "tasks"))
+	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
+	tasksService := tasks_service.NewTasksService(tasksRepository)
+	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
 	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
@@ -52,7 +66,8 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes()
+	apiVersionRouter.RegisterRoutes( /* users */ )
+	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 
 	if err := httpServer.Run(ctx); err != nil {
