@@ -33,6 +33,11 @@ type TasksRepository interface {
 		id int64,
 	) (domain.Task, error)
 
+	DeleteTask(
+		ctx context.Context,
+		id int64,
+	) error
+
 	PatchTask(
 		ctx context.Context,
 		id int64,
