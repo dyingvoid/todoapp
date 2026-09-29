@@ -27,7 +27,7 @@ type TasksService interface {
 
 	GetTask(
 		ctx context.Context,
-		id, userID int64,
+		id int64,
 	) (domain.Task, error)
 
 	PatchTask(
@@ -56,6 +56,11 @@ func (h *TasksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodGet,
 			Path:    "/tasks",
 			Handler: h.GetTasks,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/tasks/{id}",
+			Handler: h.GetTask,
 		},
 	}
 }

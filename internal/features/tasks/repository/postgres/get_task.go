@@ -13,7 +13,6 @@ import (
 func (r *TasksRepository) GetTask(
 	ctx context.Context,
 	id int64,
-	userID int64,
 ) (domain.Task, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -21,10 +20,9 @@ func (r *TasksRepository) GetTask(
 	query := `
 	SELECT *
 	FROM todoapp.task
-	WHERE id = @id AND user_id = @user_id;`
+	WHERE id = @id;`
 	args := pgx.NamedArgs{
-		"id":      id,
-		"user_id": userID,
+		"id": id,
 	}
 	rows, err := r.pool.Query(ctx, query, args)
 	if err != nil {
