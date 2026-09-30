@@ -12,9 +12,9 @@ import (
 )
 
 type PatchTaskRequest struct {
-	Title       core_http_types.Nullable[string] `json:"title"`
-	Description core_http_types.Nullable[string] `json:"description"`
-	Completed   core_http_types.Nullable[bool]   `json:"completed"`
+	Title       core_http_types.Nullable[string] `json:"title" swaggertype:"string"`
+	Description core_http_types.Nullable[string] `json:"description" swaggertype:"string"`
+	Completed   core_http_types.Nullable[bool]   `json:"completed" swaggertype:"string"`
 }
 
 func (r *PatchTaskRequest) Validate() error {
