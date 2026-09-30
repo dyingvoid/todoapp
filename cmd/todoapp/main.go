@@ -11,6 +11,9 @@ import (
 	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/conn"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
+	statistics_postgres_repository "github.com/dyingvoid/todoapp/internal/features/statistics/repository/postgres"
+	statistics_service "github.com/dyingvoid/todoapp/internal/features/statistics/service"
+	statistics_transport_http "github.com/dyingvoid/todoapp/internal/features/statistics/transport/http"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +42,10 @@ func main() {
 	}
 	defer pool.Close()
 
-	logger.Debug("initializing feature", zap.String("feature", "users"))
+	logger.Debug("initializing feature", zap.String("feature", "statistics"))
+	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
+	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
+	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
 
 	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
@@ -52,7 +58,8 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes()
+	apiVersionRouter.RegisterRoutes( /* users */ )
+	apiVersionRouter.RegisterRoutes(statisticsTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 
 	if err := httpServer.Run(ctx); err != nil {
