@@ -3,6 +3,7 @@ package core_http_middleware
 import (
 	"context"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
@@ -53,6 +54,11 @@ func Panic() Middleware {
 
 			defer func() {
 				if p := recover(); p != nil {
+					log.Error(
+						"panic",
+						zap.Any("error", p),
+						zap.String("stack", string(debug.Stack())),
+					)
 					responseHandler.PanicResponse(
 						p,
 						"during handle HTTP request got unexpected panic",
@@ -82,7 +88,7 @@ func Trace() Middleware {
 
 			log.Debug(
 				"<<< done HTTP request",
-				zap.Int("status_code", rw.GetStatusCodeOrPanic()),
+				zap.Int("status_code", rw.GetStatusCode()),
 				zap.Duration("latency", time.Since(before)),
 			)
 		})

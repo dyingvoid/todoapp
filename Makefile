@@ -56,3 +56,11 @@ todoapp-run:
 	go mod tidy && \
 	go fmt ${PROJECT_ROOT}/... && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/
+
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/todoapp/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
