@@ -18,6 +18,19 @@ type GetStatisticsResponse struct {
 	TasksAverageCompletionTime *string  `json:"tasks_average_completion_time"`
 }
 
+// GetStatistics godoc
+//
+// @Summary      Get statistics
+// @Description  Returns aggregated task statistics, optionally filtered by author user ID and date range
+// @Tags         statistics
+// @Produce      json
+// @Param        user_id query int    false "Filter by author user ID"
+// @Param        from    query string false "Start date in YYYY-MM-DD format (inclusive)"
+// @Param        to      query string false "End date in YYYY-MM-DD format (inclusive)"
+// @Success      200 {object} GetStatisticsResponse
+// @Failure      400 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /statistics [get]
 func (h *StatisticsHTTPHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
