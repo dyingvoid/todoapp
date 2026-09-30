@@ -12,8 +12,8 @@ import (
 )
 
 type PatchUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+	FullName    core_http_types.Nullable[string] `json:"full_name" swaggertype:"string"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" swaggertype:"string"`
 }
 
 func (r *PatchUserRequest) Validate() error {
