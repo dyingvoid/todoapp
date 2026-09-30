@@ -42,6 +42,13 @@ func (h *HTTPServer) RegisterAPIRoutes(routers ...*APIVersionRouter) {
 	}
 }
 
+func (h *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		pattern := fmt.Sprintf("%s %s", route.Method, route.Path)
+		h.mux.Handle(pattern, route.Handler)
+	}
+}
+
 func (h *HTTPServer) Run(ctx context.Context) error {
 	mux := core_http_middleware.ChainMiddleware(h.mux, h.middleware...)
 	mux = http.MaxBytesHandler(mux, 10<<20)
