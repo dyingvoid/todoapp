@@ -9,7 +9,7 @@ import (
 	"github.com/dyingvoid/todoapp/docs"
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
-	"github.com/swaggo/http-swagger"
+	"github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
 
@@ -49,6 +49,7 @@ func (h *HTTPServer) RegisterSwagger() {
 		"/swagger/",
 		httpSwagger.Handler(
 			httpSwagger.URL("/swagger/doc.json"),
+			httpSwagger.DefaultModelsExpandDepth(-1),
 		),
 	)
 
