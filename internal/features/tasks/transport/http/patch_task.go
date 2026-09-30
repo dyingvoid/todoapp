@@ -49,6 +49,20 @@ func (r *PatchTaskRequest) Validate() error {
 
 type PatchTaskResponse TaskDTOResponse
 
+// PatchTask godoc
+//
+// @Summary      Update task
+// @Description  Partially updates a task by its ID
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id      path int              true "Task ID"
+// @Param        request body PatchTaskRequest true "Task patch payload"
+// @Success      200 {object} PatchTaskResponse
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /tasks/{id} [patch]
 func (h *TasksHTTPHandler) PatchTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

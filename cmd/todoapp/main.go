@@ -19,6 +19,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title     Todoapp API
+// @version   1.0
+// @description HTTP API of the todoapp service.
+// @BasePath  /api/v1
 func main() {
 	cfg := core_config.NewConfigMust()
 	time.Local = cfg.TimeZone

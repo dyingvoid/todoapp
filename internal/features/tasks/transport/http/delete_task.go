@@ -8,6 +8,17 @@ import (
 	core_http_response "github.com/dyingvoid/todoapp/internal/core/transport/http/response"
 )
 
+// DeleteTask godoc
+//
+// @Summary      Delete task
+// @Description  Deletes a task by its ID
+// @Tags         tasks
+// @Param        id path int true "Task ID"
+// @Success      204 "No Content"
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /tasks/{id} [delete]
 func (h *TasksHTTPHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
