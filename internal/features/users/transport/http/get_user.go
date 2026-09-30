@@ -10,6 +10,18 @@ import (
 
 type GetUserResponse UserDTOResponse
 
+// GetUser godoc
+//
+// @Summary      Get user
+// @Description  Returns a user by its ID
+// @Tags         users
+// @Produce      json
+// @Param        id path int true "User ID"
+// @Success      200 {object} GetUserResponse
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /users/{id} [get]
 func (h *UsersHTTPHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -42,6 +42,20 @@ func (r *PatchUserRequest) Validate() error {
 
 type PatchUserResponse UserDTOResponse
 
+// PatchUser godoc
+//
+// @Summary      Update user
+// @Description  Partially updates a user by its ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id      path int             true "User ID"
+// @Param        request body PatchUserRequest true "User patch payload"
+// @Success      200 {object} PatchUserResponse
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

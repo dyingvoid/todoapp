@@ -11,6 +11,18 @@ import (
 
 type GetUsersResponse []UserDTOResponse
 
+// GetUsers godoc
+//
+// @Summary      List users
+// @Description  Returns a list of users
+// @Tags         users
+// @Produce      json
+// @Param        limit  query int false "Maximum number of users to return"
+// @Param        offset query int false "Number of users to skip"
+// @Success      200 {array} UserDTOResponse
+// @Failure      400 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /users [get]
 func (h *UsersHTTPHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -8,6 +8,17 @@ import (
 	core_http_response "github.com/dyingvoid/todoapp/internal/core/transport/http/response"
 )
 
+// DeleteUser godoc
+//
+// @Summary      Delete user
+// @Description  Deletes a user by its ID
+// @Tags         users
+// @Param        id path int true "User ID"
+// @Success      204 "No Content"
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /users/{id} [delete]
 func (h *UsersHTTPHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
