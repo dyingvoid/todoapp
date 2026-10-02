@@ -14,6 +14,10 @@ import (
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
 
+	web_fs_repository "github.com/dyingvoid/todoapp/internal/features/repository/file_system"
+	web_service "github.com/dyingvoid/todoapp/internal/features/service"
+	web_transport_http "github.com/dyingvoid/todoapp/internal/features/transport/http"
+
 	statistics_postgres_repository "github.com/dyingvoid/todoapp/internal/features/statistics/repository/postgres"
 	statistics_service "github.com/dyingvoid/todoapp/internal/features/statistics/service"
 	statistics_transport_http "github.com/dyingvoid/todoapp/internal/features/statistics/transport/http"
@@ -25,6 +29,7 @@ import (
 	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
 	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
 	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
+
 	"go.uber.org/zap"
 
 	_ "github.com/dyingvoid/todoapp/docs"
@@ -64,6 +69,11 @@ func main() {
 	}
 	defer pool.Close()
 
+	logger.Debug("initializing feature", zap.String("feature", "web"))
+	webRepository := web_fs_repository.NewWebRepository()
+	webService := web_service.NewWebService(webRepository)
+	webTransportHTTP := web_transport_http.NewWebHTTPHandler(webService)
+
 	logger.Debug("initializing feature", zap.String("feature", "statistics"))
 	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
@@ -91,9 +101,11 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+
 	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(statisticsTransportHTTP.Routes()...)
+	httpServer.RegisterRoutes(webTransportHTTP.Routes()...)
 
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 	httpServer.RegisterSwagger()

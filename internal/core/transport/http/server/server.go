@@ -43,6 +43,13 @@ func (s *HTTPServer) RegisterAPIRoutes(routers ...*APIVersionRouter) {
 	}
 }
 
+func (h *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		pattern := fmt.Sprintf("%s %s", route.Method, route.Path)
+		h.mux.Handle(pattern, route.Handler)
+	}
+}
+
 func (h *HTTPServer) RegisterSwagger() {
 	h.mux.Handle(
 		"/swagger/",
@@ -64,6 +71,7 @@ func (h *HTTPServer) RegisterSwagger() {
 
 func (s *HTTPServer) Run(ctx context.Context) error {
 	mux := core_http_middleware.ChainMiddleware(s.mux, s.middleware...)
+
 	mux = http.MaxBytesHandler(mux, 10<<20)
 	server := &http.Server{
 		Addr:    s.config.Addr,

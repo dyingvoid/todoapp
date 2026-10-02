@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Minimal API Console</title>
+    <style>
+        :root {
+            --bg: #0b0d12;
+            --bg-elev: #12151d;
+            --card: #151922;
+            --card-2: #1a1f2b;
+            --border: #242b3a;
+            --border-2: #2e3648;
+            --text: #e6eaf2;
+            --muted: #8b93a7;
+            --accent: #6d8bff;
+            --accent-2: #8b5cf6;
+            --ok: #35d399;
+            --err: #ff6b7a;
+            --warn: #ffb84d;
+            --radius: 12px;
+            --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 600px at 10% -10%, rgba(109, 139, 255, .12), transparent 60%),
+                radial-gradient(900px 500px at 100% 0%, rgba(139, 92, 246, .10), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ---------- Top bar ---------- */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 22px;
+            background: rgba(11, 13, 18, .82);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            flex: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 22px rgba(109, 139, 255, .45);
+        }
+
+        .topbar h1 {
+            font-size: 15.5px;
+            margin: 0;
+            letter-spacing: .2px;
+        }
+
+        .sub {
+            margin: 0;
+            font-size: 11.5px;
+            color: var(--muted);
+        }
+
+        .base-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            background: var(--bg-elev);
+            padding: 6px 12px;
+            border-radius: 999px;
+        }
+
+        .base-badge code {
+            color: var(--accent);
+            font-family: var(--mono);
+        }
+
+        /* ---------- Tabs ---------- */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            padding: 16px 22px 0;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--muted);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+            background: var(--bg-elev);
+        }
+
+        .tab.active {
+            color: var(--text);
+            background: var(--card);
+            border-color: var(--border-2);
+        }
+
+        /* ---------- Layout ---------- */
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 390px;
+            gap: 20px;
+            padding: 16px 22px 40px;
+            max-width: 1500px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        main {
+            min-width: 0;
+        }
+
+        .panel {
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        /* ---------- Cards ---------- */
+        .card {
+            background: linear-gradient(180deg, var(--card), var(--card-2));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
+        }
+
+        .card h2 {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12.5px;
+            margin: 0 0 14px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            color: #c7cee0;
+            font-weight: 700;
+        }
+
+        .card h2 code {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--muted);
+        }
+
+        /* ---------- Method chips ---------- */
+        .method {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            letter-spacing: .5px;
+        }
+
+        .method.get {
+            background: rgba(109, 139, 255, .15);
+            color: #8fa8ff;
+        }
+
+        .method.post {
+            background: rgba(53, 211, 153, .15);
+            color: #4fd6a3;
+        }
+
+        .method.patch {
+            background: rgba(255, 184, 77, .15);
+            color: #ffc46b;
+        }
+
+        .method.delete {
+            background: rgba(255, 107, 122, .15);
+            color: #ff8b97;
+        }
+
+        /* ---------- Forms ---------- */
+        form {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .3px;
+        }
+
+        .hint {
+            font-weight: 500;
+            color: #5e6678;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            background: #0e1118;
+            border: 1px solid var(--border-2);
+            color: var(--text);
+            padding: 9px 11px;
+            border-radius: 9px;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s, opacity .15s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 72px;
+            font-family: inherit;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #4d5566;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(109, 139, 255, .15);
+        }
+
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .inline-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .inline-form label {
+            flex: 1 1 110px;
+            min-width: 90px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            background: #1e2432;
+            border: 1px solid var(--border-2);
+            color: var(--text);
+            padding: 9px 15px;
+            border-radius: 9px;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: background .15s, border-color .15s, filter .15s, transform .05s;
+        }
+
+        .btn:hover {
+            background: #262d3d;
+            border-color: #3a4459;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(109, 139, 255, .28);
+        }
+
+        .btn.primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn.danger {
+            color: #ff9aa4;
+            border-color: rgba(255, 107, 122, .35);
+            background: rgba(255, 107, 122, .08);
+        }
+
+        .btn.danger:hover {
+            background: rgba(255, 107, 122, .16);
+        }
+
+        .btn.tiny {
+            padding: 4px 9px;
+            font-size: 11px;
+            border-radius: 7px;
+        }
+
+        /* ---------- Table ---------- */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        th {
+            text-align: left;
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--muted);
+            font-weight: 700;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .02);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(36, 43, 58, .6);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(109, 139, 255, .05);
+        }
+
+        .mono {
+            font-family: var(--mono);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .empty {
+            color: var(--muted);
+            font-style: italic;
+            text-align: center;
+            padding: 18px;
+        }
+
+        .pill {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(139, 147, 167, .15);
+            color: var(--muted);
+        }
+
+        .pill.done {
+            background: rgba(53, 211, 153, .15);
+            color: #4fd6a3;
+        }
+
+        /* ---------- Patch form ---------- */
+        .patch-form {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-2);
+        }
+
+        .patch-note {
+            margin: 0;
+            font-size: 11.5px;
+            color: var(--muted);
+            background: rgba(109, 139, 255, .06);
+            border: 1px solid rgba(109, 139, 255, .15);
+            border-radius: 9px;
+            padding: 8px 11px;
+        }
+
+        .patch-note code {
+            font-family: var(--mono);
+            color: #9fb2ff;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 155px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 560px) {
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .check {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+        }
+
+        .check input {
+            width: auto;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* ---------- JSON / stats ---------- */
+        .json-view {
+            background: #0e1118;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 0;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.55;
+            color: #b9c2d6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 280px;
+            overflow: auto;
+        }
+
+        .detail {
+            margin-top: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            background: #0e1118;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .stat .label {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .stat .value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 6px;
+            font-family: var(--mono);
+        }
+
+        .stat .value.small {
+            font-size: 13.5px;
+            word-break: break-word;
+        }
+
+        /* ---------- Console ---------- */
+        .console {
+            position: sticky;
+            top: 86px;
+            display: flex;
+            flex-direction: column;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            max-height: calc(100vh - 110px);
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            .console {
+                position: static;
+                max-height: 460px;
+            }
+        }
+
+        .console-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .console-head h2 {
+            margin: 0;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            color: #c7cee0;
+        }
+
+        .console-log {
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-entry {
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border-2);
+            border-radius: 9px;
+            padding: 9px 10px;
+            background: #0e1118;
+            animation: fadeIn .18s ease;
+        }
+
+        .log-entry.ok {
+            border-left-color: var(--ok);
+        }
+
+        .log-entry.err {
+            border-left-color: var(--err);
+        }
+
+        .log-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .log-url {
+            flex: 1 1 120px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--muted);
+            word-break: break-all;
+        }
+
+        .status {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .s-ok {
+            color: var(--ok);
+        }
+
+        .s-err {
+            color: var(--err);
+        }
+
+        .log-body {
+            margin: 8px 0 0;
+            font-family: var(--mono);
+            font-size: 11px;
+            line-height: 1.5;
+            color: #b9c2d6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 220px;
+            overflow: auto;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ---------- Toasts ---------- */
+        .toasts {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            max-width: 330px;
+            background: #161b26;
+            border: 1px solid var(--border-2);
+            border-left: 3px solid var(--accent);
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .55);
+            animation: slideIn .2s ease;
+        }
+
+        .toast.success {
+            border-left-color: var(--ok);
+        }
+
+        .toast.error {
+            border-left-color: var(--err);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div class="brand">
+            <span class="logo"></span>
+            <div>
+                <h1>Minimal API Console</h1>
+                <p class="sub">Users · Tasks · Statistics</p>
+            </div>
+        </div>
+        <div class="base-badge">API_BASE <code id="api-base-label">api/v1</code></div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="users" role="tab">Users</button>
+        <button class="tab" data-tab="tasks" role="tab">Tasks</button>
+        <button class="tab" data-tab="stats" role="tab">Statistics</button>
+    </nav>
+
+    <div class="layout">
+        <main>
+
+            <!-- ============ USERS ============ -->
+            <section class="panel active" id="panel-users">
+
+                <div class="card">
+                    <h2><span class="method post">POST</span> Create user <code>/users</code></h2>
+                    <form id="user-create-form">
+                        <div class="form-grid">
+                            <label>full_name <span class="hint">required · 3–100</span>
+                                <input name="full_name" required minlength="3" maxlength="100"
+                                    placeholder="Ada Lovelace" autocomplete="off">
+                            </label>
+                            <label>phone_number <span class="hint">optional · 10–15 · starts with +</span>
+                                <input name="phone_number" pattern="\+[0-9]{9,14}" placeholder="+491234567890"
+                                    autocomplete="off">
+                            </label>
+                        </div>
+                        <div class="actions">
+                            <button class="btn primary" type="submit">Create user</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><span class="method get">GET</span> List users <code>/users</code></h2>
+                    <form id="users-list-form" class="inline-form">
+                        <label>limit <input name="limit" type="number" min="1" step="1" placeholder="10"></label>
+                        <label>offset <input name="offset" type="number" min="0" step="1" placeholder="0"></label>
+                        <button class="btn" type="submit">Load users</button>
+                    </form>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>id</th>
+                                    <th>ver</th>
+                                    <th>full_name</th>
+                                    <th>phone_number</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr>
+                                    <td colspan="5" class="empty">No data loaded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>
+                        <span class="method get">GET</span>
+                        <span class="method patch">PATCH</span>
+                        <span class="method delete">DELETE</span>
+                        Single user <code>/users/{id}</code>
+                    </h2>
+                    <form id="user-id-form" class="inline-form">
+                        <label>id <input name="id" id="user-id" type="number" min="1" step="1" required
+                                placeholder="1"></label>
+                        <button class="btn" type="submit">Get</button>
+                        <button class="btn danger" type="button" id="user-delete-btn">Delete</button>
+                    </form>
+
+                    <div id="user-detail" class="detail hidden"></div>
+
+                    <form id="user-patch-form" class="patch-form">
+                        <p class="patch-note">
+                            Patch semantics: omit a field to leave it unchanged, send <code>null</code> to clear
+                            <code>phone_number</code>. <code>full_name</code> rejects <code>null</code>.
+                        </p>
+                        <div class="field-row">
+                            <label class="check"><input type="checkbox" name="set_full_name"> full_name</label>
+                            <input class="patch-input" name="full_name" disabled minlength="3" maxlength="100"
+                                placeholder="New full name">
+                        </div>
+                        <div class="field-row">
+                            <label class="check"><input type="checkbox" name="set_phone_number"> phone_number</label>
+                            <input class="patch-input" name="phone_number" disabled
+                                placeholder="+49… (leave empty to clear → null)">
+                        </div>
+                        <div class="actions">
+                            <button class="btn primary" type="submit">Send PATCH</button>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+
+            <!-- ============ TASKS ============ -->
+            <section class="panel" id="panel-tasks">
+
+                <div class="card">
+                    <h2><span class="method post">POST</span> Create task <code>/tasks</code></h2>
+                    <form id="task-create-form">
+                        <div class="form-grid">
+                            <label>title <span class="hint">required · 1–100</span>
+                                <input name="title" required minlength="1" maxlength="100"
+                                    placeholder="Write the report" autocomplete="off">
+                            </label>
+                            <label>author_user_id <span class="hint">required · int</span>
+                                <input name="author_user_id" type="number" min="1" step="1" required placeholder="1">
+                            </label>
+                        </div>
+                        <label>description <span class="hint">optional · 1–1000</span>
+                            <textarea name="description" maxlength="1000" rows="3" placeholder="Details…"></textarea>
+                        </label>
+                        <div class="actions">
+                            <button class="btn primary" type="submit">Create task</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><span class="method get">GET</span> List tasks <code>/tasks</code></h2>
+                    <form id="tasks-list-form" class="inline-form">
+                        <label>user_id <input name="user_id" type="number" min="1" step="1" placeholder="any"></label>
+                        <label>limit <input name="limit" type="number" min="1" step="1" placeholder="10"></label>
+                        <label>offset <input name="offset" type="number" min="0" step="1" placeholder="0"></label>
+                        <button class="btn" type="submit">Load tasks</button>
+                    </form>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>id</th>
+                                    <th>ver</th>
+                                    <th>title</th>
+                                    <th>completed</th>
+                                    <th>author</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty">No data loaded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>
+                        <span class="method get">GET</span>
+                        <span class="method patch">PATCH</span>
+                        <span class="method delete">DELETE</span>
+                        Single task <code>/tasks/{id}</code>
+                    </h2>
+                    <form id="task-id-form" class="inline-form">
+                        <label>id <input name="id" id="task-id" type="number" min="1" step="1" required
+                                placeholder="1"></label>
+                        <button class="btn" type="submit">Get</button>
+                        <button class="btn danger" type="button" id="task-delete-btn">Delete</button>
+                    </form>
+
+                    <div id="task-detail" class="detail hidden"></div>
+
+                    <form id="task-patch-form" class="patch-form">
+                        <p class="patch-note">
+                            Patch semantics: omit a field to leave it unchanged, send <code>null</code> to clear
+                            <code>description</code>. <code>title</code> and <code>completed</code> reject
+                            <code>null</code>.
+                        </p>
+                        <div class="field-row">
+                            <label class="check"><input type="checkbox" name="set_title"> title</label>
+                            <input class="patch-input" name="title" disabled minlength="1" maxlength="100"
+                                placeholder="New title">
+                        </div>
+                        <div class="field-row">
+                            <label class="check"><input type="checkbox" name="set_description"> description</label>
+                            <input class="patch-input" name="description" disabled
+                                placeholder="New description (leave empty to clear → null)">
+                        </div>
+                        <div class="field-row">
+                            <label class="check"><input type="checkbox" name="set_completed"> completed</label>
+                            <select class="patch-input" name="completed" disabled>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                            </select>
+                        </div>
+                        <div class="actions">
+                            <button class="btn primary" type="submit">Send PATCH</button>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+
+            <!-- ============ STATISTICS ============ -->
+            <section class="panel" id="panel-stats">
+                <div class="card">
+                    <h2><span class="method get">GET</span> Aggregated task stats <code>/statistics</code></h2>
+                    <form id="stats-form">
+                        <div class="form-grid">
+                            <label>user_id <span class="hint">optional · filter by author</span>
+                                <input name="user_id" type="number" min="1" step="1" placeholder="any">
+                            </label>
+                            <label>from <span class="hint">optional · YYYY-MM-DD</span>
+                                <input name="from" type="date">
+                            </label>
+                            <label>to <span class="hint">optional · YYYY-MM-DD</span>
+                                <input name="to" type="date">
+                            </label>
+                        </div>
+                        <div class="actions">
+                            <button class="btn primary" type="submit">Load statistics</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card hidden" id="stats-card">
+                    <h2>Result</h2>
+                    <div id="stats-result"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <aside class="console">
+            <div class="console-head">
+                <h2>Response log</h2>
+                <button class="btn tiny" id="clear-log" type="button">Clear</button>
+            </div>
+            <div class="console-log" id="console-log">
+                <p class="empty">No requests yet.</p>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+
+    <script>
+        /* =======================================================================
+           Config
+           ======================================================================= */
+        const API_BASE = 'api/v1';   // <-- single source of truth, never hardcode paths
+
+        /* =======================================================================
+           Tiny helpers
+           ======================================================================= */
+        const $ = (sel, root = document) => root.querySelector(sel);
+        const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+        const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ESC_MAP[c]);
+
+        function pretty(value) {
+            if (value === null || value === undefined) return 'null';
+            if (typeof value === 'string') return value;
+            try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+        }
+
+        function buildUrl(path, query) {
+            const params = new URLSearchParams();
+            if (query) {
+                for (const [key, value] of Object.entries(query)) {
+                    if (value === undefined || value === null || value === '') continue;
+                    params.append(key, value);
+                }
+            }
+            const qs = params.toString();
+            return `${API_BASE}${path}${qs ? `?${qs}` : ''}`;
+        }
+
+        /* =======================================================================
+           Toast notifications
+           ======================================================================= */
+        function toast(message, type = 'info') {
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.textContent = message;
+            $('#toasts').appendChild(el);
+            setTimeout(() => {
+                el.style.transition = 'opacity .25s, transform .25s';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(8px)';
+                setTimeout(() => el.remove(), 260);
+            }, 3200);
+        }
+
+        /* =======================================================================
+           Response log
+           ======================================================================= */
+        const consoleLog = $('#console-log');
+
+        function logRequest({ method, url, status, ok, body }) {
+            const placeholder = consoleLog.querySelector('.empty');
+            if (placeholder) placeholder.remove();
+
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${ok ? 'ok' : 'err'}`;
+            entry.innerHTML = `
+    <div class="log-head">
+      <span class="method ${esc(method.toLowerCase())}">${esc(method)}</span>
+      <span class="log-url">${esc(url)}</span>
+      <span class="status ${ok ? 's-ok' : 's-err'}">${esc(status)}</span>
+    </div>
+    <pre class="log-body">${esc(pretty(body))}</pre>
+  `;
+            consoleLog.prepend(entry);
+
+            while (consoleLog.children.length > 40) consoleLog.lastElementChild.remove();
+        }
+
+        $('#clear-log').addEventListener('click', () => {
+            consoleLog.innerHTML = '<p class="empty">No requests yet.</p>';
+        });
+
+        /* =======================================================================
+           API client
+           ======================================================================= */
+        async function api(method, path, { query, body } = {}) {
+            const url = buildUrl(path, query);
+            const init = { method, headers: {} };
+
+            if (body !== undefined) {
+                init.headers['Content-Type'] = 'application/json';
+                init.body = JSON.stringify(body);
+            }
+
+            let res;
+            try {
+                res = await fetch(url, init);
+            } catch (networkError) {
+                logRequest({
+                    method, url, status: 'NETWORK', ok: false,
+                    body: { message: 'Network error', error: String(networkError) }
+                });
+                throw new Error('Network error — could not reach the API.');
+            }
+
+            const raw = await res.text();
+            let data = null;
+            if (raw) {
+                try { data = JSON.parse(raw); } catch { data = raw; }
+            }
+
+            logRequest({ method, url, status: res.status, ok: res.ok, body: data });
+
+            if (!res.ok) {
+                const message =
+                    (data && typeof data === 'object' && data.message) ? data.message : `HTTP ${res.status}`;
+                const error = new Error(message);
+                error.status = res.status;
+                error.data = data;
+                throw error;
+            }
+
+            return data;
+        }
+
+        /* Runs a handler and surfaces any error as a toast. */
+        async function run(fn) {
+            try { return await fn(); }
+            catch (err) { toast(err.message || 'Request failed', 'error'); }
+        }
+
+        /* =======================================================================
+           Tabs
+           ======================================================================= */
+        $$('.tab').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                $$('.tab').forEach((t) => t.classList.toggle('active', t === tab));
+                $$('.panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${tab.dataset.tab}`));
+            });
+        });
+
+        /* =======================================================================
+           Patch-form toggle wiring (checkbox enables its input)
+           ======================================================================= */
+        $$('.patch-form').forEach((form) => {
+            form.querySelectorAll('.check input[type="checkbox"]').forEach((checkbox) => {
+                const row = checkbox.closest('.field-row');
+                const input = row.querySelector('.patch-input');
+                checkbox.addEventListener('change', () => {
+                    input.disabled = !checkbox.checked;
+                    if (checkbox.checked) input.focus();
+                });
+            });
+        });
+
+        function resetPatchForm(form) {
+            form.reset();
+            form.querySelectorAll('.patch-input').forEach((input) => { input.disabled = true; });
+        }
+
+        /* =======================================================================
+           USERS
+           ======================================================================= */
+        const usersTbody = $('#users-tbody');
+
+        function renderUsers(users) {
+            if (!Array.isArray(users) || users.length === 0) {
+                usersTbody.innerHTML = '<tr><td colspan="5" class="empty">No users found.</td></tr>';
+                return;
+            }
+            usersTbody.innerHTML = users.map((u) => `
+    <tr>
+      <td class="mono">${esc(u.id)}</td>
+      <td class="mono muted">${esc(u.version)}</td>
+      <td>${esc(u.full_name)}</td>
+      <td class="mono muted">${u.phone_number ? esc(u.phone_number) : '—'}</td>
+      <td class="row-actions">
+        <button class="btn tiny" data-action="get" data-id="${esc(u.id)}">Get</button>
+        <button class="btn tiny" data-action="patch" data-id="${esc(u.id)}">Patch</button>
+        <button class="btn tiny danger" data-action="delete" data-id="${esc(u.id)}">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+        }
+
+        function showUserDetail(user) {
+            const box = $('#user-detail');
+            box.classList.remove('hidden');
+            box.innerHTML = `<pre class="json-view">${esc(pretty(user))}</pre>`;
+        }
+
+        async function loadUsers() {
+            const fd = new FormData($('#users-list-form'));
+            const users = await api('GET', '/users', {
+                query: { limit: fd.get('limit'), offset: fd.get('offset') }
+            });
+            renderUsers(users);
+        }
+
+        async function loadUser(id) {
+            const user = await api('GET', `/users/${encodeURIComponent(id)}`);
+            showUserDetail(user);
+            return user;
+        }
+
+        async function deleteUser(id) {
+            if (!window.confirm(`Delete user #${id}?`)) return;
+            await api('DELETE', `/users/${encodeURIComponent(id)}`);
+            toast(`User #${id} deleted`, 'success');
+            $('#user-detail').classList.add('hidden');
+            await loadUsers();
+        }
+
+        /* Create */
+        $('#user-create-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const fd = new FormData(form);
+
+            const body = { full_name: String(fd.get('full_name') || '').trim() };
+            const phone = String(fd.get('phone_number') || '').trim();
+            if (phone) body.phone_number = phone;
+
+            run(async () => {
+                const user = await api('POST', '/users', { body });
+                toast(`User #${user.id} created`, 'success');
+                form.reset();
+                showUserDetail(user);
+                await loadUsers();
+            });
+        });
+
+        /* List */
+        $('#users-list-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            run(loadUsers);
+        });
+
+        /* Row actions */
+        usersTbody.addEventListener('click', (event) => {
+            const btn = event.target.closest('button[data-action]');
+            if (!btn) return;
+
+            const { action, id } = btn.dataset;
+            $('#user-id').value = id;
+
+            if (action === 'get' || action === 'patch') run(() => loadUser(id));
+            if (action === 'delete') run(() => deleteUser(id));
+        });
+
+        /* Get by id */
+        $('#user-id-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const id = $('#user-id').value.trim();
+            if (!id) return toast('Enter a user id', 'error');
+            run(() => loadUser(id));
+        });
+
+        /* Delete by id */
+        $('#user-delete-btn').addEventListener('click', () => {
+            const id = $('#user-id').value.trim();
+            if (!id) return toast('Enter a user id', 'error');
+            run(() => deleteUser(id));
+        });
+
+        /* Patch */
+        $('#user-patch-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const id = $('#user-id').value.trim();
+            if (!id) return toast('Enter a user id first', 'error');
+
+            const els = form.elements;
+            const body = {};
+
+            if (els.set_full_name.checked) {
+                const value = els.full_name.value.trim();
+                if (!value) return toast('full_name cannot be null or empty', 'error');
+                body.full_name = value;
+            }
+            if (els.set_phone_number.checked) {
+                const value = els.phone_number.value.trim();
+                body.phone_number = value === '' ? null : value;   // empty -> clear
+            }
+
+            if (Object.keys(body).length === 0) return toast('Nothing to patch', 'error');
+
+            run(async () => {
+                const user = await api('PATCH', `/users/${encodeURIComponent(id)}`, { body });
+                toast(`User #${user.id} updated`, 'success');
+                resetPatchForm(form);
+                showUserDetail(user);
+                await loadUsers();
+            });
+        });
+
+        /* =======================================================================
+           TASKS
+           ======================================================================= */
+        const tasksTbody = $('#tasks-tbody');
+
+        function renderTasks(tasks) {
+            if (!Array.isArray(tasks) || tasks.length === 0) {
+                tasksTbody.innerHTML = '<tr><td colspan="6" class="empty">No tasks found.</td></tr>';
+                return;
+            }
+            tasksTbody.innerHTML = tasks.map((t) => `
+    <tr>
+      <td class="mono">${esc(t.id)}</td>
+      <td class="mono muted">${esc(t.version)}</td>
+      <td>${esc(t.title)}</td>
+      <td><span class="pill ${t.completed ? 'done' : ''}">${esc(t.completed)}</span></td>
+      <td class="mono muted">${esc(t.author_user_id)}</td>
+      <td class="row-actions">
+        <button class="btn tiny" data-action="get" data-id="${esc(t.id)}">Get</button>
+        <button class="btn tiny" data-action="patch" data-id="${esc(t.id)}">Patch</button>
+        <button class="btn tiny danger" data-action="delete" data-id="${esc(t.id)}">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+        }
+
+        function showTaskDetail(task) {
+            const box = $('#task-detail');
+            box.classList.remove('hidden');
+            box.innerHTML = `<pre class="json-view">${esc(pretty(task))}</pre>`;
+        }
+
+        async function loadTasks() {
+            const fd = new FormData($('#tasks-list-form'));
+            const tasks = await api('GET', '/tasks', {
+                query: {
+                    user_id: fd.get('user_id'),
+                    limit: fd.get('limit'),
+                    offset: fd.get('offset')
+                }
+            });
+            renderTasks(tasks);
+        }
+
+        async function loadTask(id) {
+            const task = await api('GET', `/tasks/${encodeURIComponent(id)}`);
+            showTaskDetail(task);
+            return task;
+        }
+
+        async function deleteTask(id) {
+            if (!window.confirm(`Delete task #${id}?`)) return;
+            await api('DELETE', `/tasks/${encodeURIComponent(id)}`);
+            toast(`Task #${id} deleted`, 'success');
+            $('#task-detail').classList.add('hidden');
+            await loadTasks();
+        }
+
+        /* Create */
+        $('#task-create-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const fd = new FormData(form);
+
+            const body = {
+                title: String(fd.get('title') || '').trim(),
+                author_user_id: Number(fd.get('author_user_id'))
+            };
+            const description = String(fd.get('description') || '').trim();
+            if (description) body.description = description;
+
+            run(async () => {
+                const task = await api('POST', '/tasks', { body });
+                toast(`Task #${task.id} created`, 'success');
+                form.reset();
+                showTaskDetail(task);
+                await loadTasks();
+            });
+        });
+
+        /* List */
+        $('#tasks-list-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            run(loadTasks);
+        });
+
+        /* Row actions */
+        tasksTbody.addEventListener('click', (event) => {
+            const btn = event.target.closest('button[data-action]');
+            if (!btn) return;
+
+            const { action, id } = btn.dataset;
+            $('#task-id').value = id;
+
+            if (action === 'get' || action === 'patch') run(() => loadTask(id));
+            if (action === 'delete') run(() => deleteTask(id));
+        });
+
+        /* Get by id */
+        $('#task-id-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const id = $('#task-id').value.trim();
+            if (!id) return toast('Enter a task id', 'error');
+            run(() => loadTask(id));
+        });
+
+        /* Delete by id */
+        $('#task-delete-btn').addEventListener('click', () => {
+            const id = $('#task-id').value.trim();
+            if (!id) return toast('Enter a task id', 'error');
+            run(() => deleteTask(id));
+        });
+
+        /* Patch */
+        $('#task-patch-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const id = $('#task-id').value.trim();
+            if (!id) return toast('Enter a task id first', 'error');
+
+            const els = form.elements;
+            const body = {};
+
+            if (els.set_title.checked) {
+                const value = els.title.value.trim();
+                if (!value) return toast('title cannot be null or empty', 'error');
+                body.title = value;
+            }
+            if (els.set_description.checked) {
+                const value = els.description.value.trim();
+                body.description = value === '' ? null : value;   // empty -> clear
+            }
+            if (els.set_completed.checked) {
+                body.completed = els.completed.value === 'true';
+            }
+
+            if (Object.keys(body).length === 0) return toast('Nothing to patch', 'error');
+
+            run(async () => {
+                const task = await api('PATCH', `/tasks/${encodeURIComponent(id)}`, { body });
+                toast(`Task #${task.id} updated`, 'success');
+                resetPatchForm(form);
+                showTaskDetail(task);
+                await loadTasks();
+            });
+        });
+
+        /* =======================================================================
+           STATISTICS
+           ======================================================================= */
+        function renderStats(stats) {
+            $('#stats-card').classList.remove('hidden');
+
+            const created = stats?.tasks_created ?? 0;
+            const completed = stats?.tasks_completed ?? 0;
+            const rate = typeof stats?.tasks_completed_rate === 'number'
+                ? `${(stats.tasks_completed_rate * 100).toFixed(1)}%`
+                : '—';
+            const avg = stats?.tasks_average_completion_time ?? '—';
+
+            $('#stats-result').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat"><div class="label">Tasks created</div><div class="value">${esc(created)}</div></div>
+      <div class="stat"><div class="label">Tasks completed</div><div class="value">${esc(completed)}</div></div>
+      <div class="stat"><div class="label">Completion rate</div><div class="value">${esc(rate)}</div></div>
+      <div class="stat"><div class="label">Avg completion time</div><div class="value small">${esc(avg)}</div></div>
+    </div>
+    <pre class="json-view">${esc(pretty(stats))}</pre>
+  `;
+        }
+
+        $('#stats-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const fd = new FormData(event.target);
+            run(async () => {
+                const stats = await api('GET', '/statistics', {
+                    query: { user_id: fd.get('user_id'), from: fd.get('from'), to: fd.get('to') }
+                });
+                renderStats(stats);
+            });
+        });
+
+        /* =======================================================================
+           Boot
+           ======================================================================= */
+        $('#api-base-label').textContent = '/' + API_BASE.replace(/^\/+/, '');
+    </script>
+</body>
+
+</html>
