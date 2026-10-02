@@ -1,0 +1,63 @@
+package tasks_transport_http
+
+import (
+	"net/http"
+
+	"github.com/dyingvoid/todoapp/internal/core/domain"
+	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
+	core_http_request "github.com/dyingvoid/todoapp/internal/core/transport/http/request"
+	core_http_response "github.com/dyingvoid/todoapp/internal/core/transport/http/response"
+)
+
+type CreateTaskRequest struct {
+	Title        string  `json:"title" validate:"required,min=1,max=100"`
+	Description  *string `json:"description" validate:"omitempty,min=1,max=1000"`
+	AuthorUserID int64   `json:"author_user_id" validate:"required"`
+}
+
+type CreateTaskResponse TaskDTOResponse
+
+// CreateTask godoc
+//
+// @Summary      Create task
+// @Description  Creates a new task
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateTaskRequest true "Task creation payload"
+// @Success      201 {object} CreateTaskResponse
+// @Failure      400 {object} map[string]string
+// @Failure      409 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /tasks [post]
+func (h *TasksHTTPHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responseHandler := core_http_response.NewHTTPResponseHandler(log, w)
+
+	var request CreateTaskRequest
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responseHandler.ErrorResponse(
+			err,
+			"failed to decode and validate HTTP request",
+		)
+	}
+
+	taskDomain := domain.NewTaskUninitialized(
+		request.Title,
+		request.Description,
+		request.AuthorUserID,
+	)
+
+	task, err := h.tasksService.CreateTask(ctx, taskDomain)
+	if err != nil {
+		responseHandler.ErrorResponse(
+			err,
+			"failed to create task",
+		)
+		return
+	}
+
+	response := CreateTaskResponse(dtoFromDomain(task))
+	responseHandler.JSONResponse(response, http.StatusCreated)
+}
