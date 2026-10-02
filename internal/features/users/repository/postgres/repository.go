@@ -1,15 +1,15 @@
-package statistics_postgres_repository
+package users_postgres_repository
 
 import core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 
-type StatisticsRepository struct {
+type UsersRepository struct {
 	pool core_postgres_pool.Pool
 }
 
-func NewStatisticsRepository(
+func NewUsersRepository(
 	pool core_postgres_pool.Pool,
-) *StatisticsRepository {
-	return &StatisticsRepository{
+) *UsersRepository {
+	return &UsersRepository{
 		pool: pool,
 	}
 }

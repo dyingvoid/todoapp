@@ -9,7 +9,7 @@ CREATE TABLE todoapp.user (
     )
 );
 
-CREATE TABLE todoapp.tasks (
+CREATE TABLE todoapp.task (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id       BIGINT NOT NULL REFERENCES todoapp.user(id),
     version       BIGINT NOT NULL DEFAULT 1,
