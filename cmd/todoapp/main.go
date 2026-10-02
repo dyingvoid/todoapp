@@ -13,6 +13,9 @@ import (
 	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
+	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
+	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
+	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
 	tasks_postgres_repository "github.com/dyingvoid/todoapp/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/dyingvoid/todoapp/internal/features/tasks/service"
 	tasks_transport_http "github.com/dyingvoid/todoapp/internal/features/tasks/transport/http"
@@ -53,6 +56,11 @@ func main() {
 	}
 	defer pool.Close()
 
+	logger.Debug("initializing feature", zap.String("feature", "users"))
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	usersService := users_service.NewUsersService(usersRepository)
+	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
+
 	logger.Debug("initializing feature", zap.String("feature", "tasks"))
 	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
 	tasksService := tasks_service.NewTasksService(tasksRepository)
@@ -64,12 +72,12 @@ func main() {
 		logger,
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
+		core_http_middleware.Panic(),
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes( /* users */ )
+	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 

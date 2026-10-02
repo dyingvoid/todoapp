@@ -13,7 +13,7 @@ env-cleanup:
 	@read -p "Clean up volume? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down todo-postgres port-forwarder && \
-		rm -rf out/pgdata && \
+		rm -rf ${PROJECT_ROOT}/out/pgdata && \
 		echo "Volume has been cleaned up"; \
 	else \
 		echo "Clean up cancelled"; \
@@ -62,6 +62,7 @@ logs-cleanup:
 todoapp-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
+	cd ${PROJECT_ROOT} && \
 	go mod tidy && \
 	go fmt ${PROJECT_ROOT}/... && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/
