@@ -22,6 +22,9 @@ env-cleanup:
 env-port-forward:
 	@docker compose up -d port-forwarder
 
+env-port-close:
+	@docker compose down port-forwarder
+
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
 		echo "seq parameter is not specified. Example: make migrate-create seq=init"; \
@@ -66,6 +69,15 @@ todoapp-run:
 	go mod tidy && \
 	go fmt ${PROJECT_ROOT}/... && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/
+
+todoapp-deploy:
+	@docker compose up -d --build todoapp
+
+todoapp-undeploy:
+	@docker compose down todoapp
+
+ps:
+	@docker compose ps
 
 swagger-gen:
 	@docker compose run --rm swagger \
