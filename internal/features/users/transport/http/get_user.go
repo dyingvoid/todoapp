@@ -1,0 +1,50 @@
+package users_transport_http
+
+import (
+	"net/http"
+
+	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
+	core_http_request "github.com/dyingvoid/todoapp/internal/core/transport/http/request"
+	core_http_response "github.com/dyingvoid/todoapp/internal/core/transport/http/response"
+)
+
+type GetUserResponse UserDTOResponse
+
+// GetUser godoc
+//
+// @Summary      Get user
+// @Description  Returns a user by its ID
+// @Tags         users
+// @Produce      json
+// @Param        id path int true "User ID"
+// @Success      200 {object} GetUserResponse
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /users/{id} [get]
+func (h *UsersHTTPHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responseHandler := core_http_response.NewHTTPResponseHandler(log, w)
+
+	userID, err := core_http_request.GetIntPathValue(r, "id")
+	if err != nil {
+		responseHandler.ErrorResponse(
+			err,
+			"failed to get id path value",
+		)
+		return
+	}
+
+	user, err := h.usersService.GetUser(ctx, userID)
+	if err != nil {
+		responseHandler.ErrorResponse(
+			err,
+			"failed to get user",
+		)
+		return
+	}
+
+	response := GetUserResponse(userDTOFromDomain(user))
+	responseHandler.JSONResponse(response, http.StatusOK)
+}

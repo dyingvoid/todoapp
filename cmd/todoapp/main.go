@@ -8,12 +8,19 @@ import (
 	"syscall"
 
 	core_logger "github.com/dyingvoid/todoapp/internal/core/logger"
-	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/conn"
+	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
+	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
+	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
+	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
 
+// @title     Todoapp API
+// @version   1.0
+// @description HTTP API of the todoapp service.
+// @BasePath  /api/v1
 func main() {
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -40,6 +47,9 @@ func main() {
 	defer pool.Close()
 
 	logger.Debug("initializing feature", zap.String("feature", "users"))
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	usersService := users_service.NewUsersService(usersRepository)
+	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
 
 	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
@@ -47,12 +57,13 @@ func main() {
 		logger,
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
+		core_http_middleware.Panic(),
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes()
+	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
+
 	httpServer.RegisterAPIRoutes(apiVersionRouter)
 
 	if err := httpServer.Run(ctx); err != nil {
