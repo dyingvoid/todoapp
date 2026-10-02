@@ -13,12 +13,12 @@ import (
 	core_postgres_pool "github.com/dyingvoid/todoapp/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/dyingvoid/todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/dyingvoid/todoapp/internal/core/transport/http/server"
-	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
-	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
-	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
 	tasks_postgres_repository "github.com/dyingvoid/todoapp/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/dyingvoid/todoapp/internal/features/tasks/service"
 	tasks_transport_http "github.com/dyingvoid/todoapp/internal/features/tasks/transport/http"
+	users_postgres_repository "github.com/dyingvoid/todoapp/internal/features/users/repository/postgres"
+	users_service "github.com/dyingvoid/todoapp/internal/features/users/service"
+	users_transport_http "github.com/dyingvoid/todoapp/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
 
